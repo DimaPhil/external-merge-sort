@@ -109,12 +109,11 @@ object SortAndMergeUtils extends Loggable {
     writer.close()
   }
 
-  def sortAndMergeFiles[T](files: List[File])(reduce: (T, T) => T)
+  def sortAndMergeFiles[T](files: List[File], groupSize: Int)(reduce: (T, T) => T)
                           (implicit readerBuilder: ReaderBuilder[T], writerBuilder: WriterBuilder[T], ord: Ordering[T]): Option[File] = {
-    val memory = math.min(Runtime.getRuntime.freeMemory() / 8, 10000000).toInt
     val sortedFiles = files.flatMap { file =>
       val reader = readerBuilder.createReader(file)
-      reader.grouped(memory).zipWithIndex.map { case (seq, id) =>
+      reader.grouped(groupSize).zipWithIndex.map { case (seq, id) =>
         val sorted = seq.sorted(ord)
         val writer = writerBuilder.createWriter(file.getParentFile, s"${file.getName}-sort-$id")
         sorted.foreach(writer.write)

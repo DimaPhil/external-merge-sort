@@ -41,7 +41,7 @@ class SortingSpec extends Specification with Mockito {
             close()
           }
         }
-        val fileOpt: Option[File] = SortAndMergeUtils.sortAndMergeFiles[String](files.toList)((a, _) => a)(StringReaderBuilder, StringWriterBuilder, Ordering.String)
+        val fileOpt: Option[File] = SortAndMergeUtils.sortAndMergeFiles[String](files.toList, 1000000)((a, _) => a)(StringReaderBuilder, StringWriterBuilder, Ordering.String)
         fileOpt should beSome
         val sortedStrings: List[String] = Source.fromFile(fileOpt.get).getLines().toList
         strings.sortWith(_ < _).toList.distinct must_== sortedStrings
@@ -70,7 +70,7 @@ class SortingSpec extends Specification with Mockito {
             close()
           }
         }
-        val fileOpt: Option[File] = SortAndMergeUtils.sortAndMergeFiles[Integer](files.toList)((a, _) => a)(IntReaderBuilder, IntWriterBuilder, OrderingInteger)
+        val fileOpt: Option[File] = SortAndMergeUtils.sortAndMergeFiles[Integer](files.toList, 1000000)((a, _) => a)(IntReaderBuilder, IntWriterBuilder, OrderingInteger)
         fileOpt should beSome
         val sortedInts: List[Int] = Source.fromFile(fileOpt.get).getLines().map(_.toInt).toList
         ints.sortWith(_ < _).toList.distinct must_== sortedInts

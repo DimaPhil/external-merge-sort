@@ -9,12 +9,12 @@ object Main {
     override def compare(x: Integer, y: Integer): Int = Integer.compare(x, y)
   }
 
-  private def sortStrings(files: List[File]): Option[File] = {
-    SortAndMergeUtils.sortAndMergeFiles[String](files)((a, _) => a)(StringReaderBuilder, StringWriterBuilder, Ordering.String)
+  private def sortStrings(files: List[File], groupSize: Int): Option[File] = {
+    SortAndMergeUtils.sortAndMergeFiles[String](files, groupSize)((a, _) => a)(StringReaderBuilder, StringWriterBuilder, Ordering.String)
   }
 
-  private def sortInts(files: List[File]): Option[File] = {
-    SortAndMergeUtils.sortAndMergeFiles[Integer](files)((a, _) => a)(IntReaderBuilder, IntWriterBuilder, OrderingInteger)
+  private def sortInts(files: List[File], groupSize: Int): Option[File] = {
+    SortAndMergeUtils.sortAndMergeFiles[Integer](files, groupSize)((a, _) => a)(IntReaderBuilder, IntWriterBuilder, OrderingInteger)
   }
 
   def main(args: Array[String]): Unit = {
@@ -22,13 +22,18 @@ object Main {
       args.toList.map(filename => new File("src/main/resources/" + filename))
     else
       new File("src/main/" + args(0)).listFiles.filter(_.isFile).toList
-    var startTime = System.currentTimeMillis()
-    sortStrings(files)
-    var endTime = System.currentTimeMillis()
-    println("Took " + (endTime - startTime) + "ms for strings")
-    startTime = System.currentTimeMillis()
-    sortInts(files)
-    endTime = System.currentTimeMillis()
-    println("Took " + (endTime - startTime) + "ms for ints")
+    for (divisor <- 4 :: 8 :: 12 :: 16 :: 20 :: 32 :: Nil) {
+      val groupSize = math.min(Runtime.getRuntime.freeMemory() / divisor, 10000000).toInt
+      var startTime = System.currentTimeMillis()
+      sortStrings(files, groupSize)
+      var endTime = System.currentTimeMillis()
+      println("Took " + (endTime - startTime) + "ms for strings")
+      System.gc()
+      startTime = System.currentTimeMillis()
+      sortInts(files, groupSize)
+      endTime = System.currentTimeMillis()
+      println("Took " + (endTime - startTime) + "ms for ints")
+      System.gc()
+    }
   }
 }
